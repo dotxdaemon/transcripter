@@ -1,0 +1,4 @@
+openai-whisper
+streamlit
+yt-dlp
+pytest
