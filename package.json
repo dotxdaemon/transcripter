@@ -1,0 +1,9 @@
+{
+  "name": "transcripter",
+  "private": true,
+  "scripts": {
+    "test": "pytest",
+    "lint": "python -m compileall app.py web_app.py tests",
+    "typecheck": "python -m py_compile app.py web_app.py tests/test_app.py tests/test_web_app.py"
+  }
+}
