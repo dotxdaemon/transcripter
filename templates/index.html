@@ -1,0 +1,168 @@
+<!-- ABOUTME: Renders the knowledge base ingestion and search page. -->
+<!-- ABOUTME: Displays search results with timestamps and video metadata. -->
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Knowledge Base</title>
+    <style>
+      body {
+        font-family: "Segoe UI", sans-serif;
+        margin: 0;
+        background: #f4f5f7;
+        color: #1f2933;
+      }
+      header {
+        background: #0f172a;
+        color: #fff;
+        padding: 24px 32px;
+      }
+      main {
+        max-width: 960px;
+        margin: 24px auto;
+        padding: 0 16px 32px;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 16px;
+      }
+      section {
+        background: #fff;
+        border-radius: 12px;
+        padding: 16px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08);
+      }
+      .message {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-weight: 600;
+      }
+      .message.success {
+        background: #ecfdf3;
+        color: #065f46;
+      }
+      .message.error {
+        background: #fef2f2;
+        color: #991b1b;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+      input[type="text"] {
+        padding: 10px 12px;
+        border-radius: 8px;
+        border: 1px solid #d1d5db;
+        font-size: 16px;
+      }
+      button {
+        padding: 10px 16px;
+        border-radius: 8px;
+        border: none;
+        background: #2563eb;
+        color: #fff;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .results {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        margin-top: 16px;
+      }
+      .result {
+        display: grid;
+        grid-template-columns: 160px 1fr;
+        gap: 16px;
+        align-items: start;
+      }
+      .result img {
+        width: 160px;
+        border-radius: 8px;
+      }
+      .matches {
+        margin-top: 8px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .matches a {
+        color: #1d4ed8;
+        text-decoration: none;
+      }
+      .muted {
+        color: #475569;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>Knowledge Base</h1>
+      <p class="muted">Search your saved YouTube transcripts from the browser.</p>
+    </header>
+    <main>
+      {% if message %}
+        <div class="message success">{{ message }}</div>
+      {% endif %}
+      {% if error %}
+        <div class="message error">{{ error }}</div>
+      {% endif %}
+      <div class="grid">
+        <section>
+          <h2>Ingest</h2>
+          <form action="{{ url_for('ingest') }}" method="post">
+            <label for="url">YouTube URL</label>
+            <input id="url" name="url" type="text" placeholder="https://www.youtube.com/watch?v=..." />
+            <button type="submit">Ingest</button>
+          </form>
+        </section>
+        <section>
+          <h2>Search</h2>
+          <form action="/" method="get">
+            <label for="query">Search your library</label>
+            <input id="query" name="q" type="text" value="{{ query }}" placeholder="Search transcripts" />
+            <button type="submit">Search</button>
+          </form>
+        </section>
+      </div>
+      <section class="results">
+        {% if results %}
+          {% for group in results %}
+            <article class="result">
+              <div>
+                {% if group.video.thumbnail_url %}
+                  <img src="{{ group.video.thumbnail_url }}" alt="{{ group.video.title }} thumbnail" />
+                {% endif %}
+              </div>
+              <div>
+                <h3>{{ group.video.title }}</h3>
+                {% if group.video.channel %}
+                  <div class="muted">{{ group.video.channel }}</div>
+                {% endif %}
+                {% if group.video.publish_date %}
+                  <div class="muted">{{ group.video.publish_date }}</div>
+                {% endif %}
+                <div class="matches">
+                  {% for match in group.matches %}
+                    {% set start_time = match.start_time | int %}
+                    {% set link = "https://www.youtube.com/watch?v=" ~ group.video.id ~ "&t=" ~ start_time %}
+                    <a href="{{ link }}" target="_blank" rel="noopener">
+                      [{{ format_timestamp(match.start_time) }}] {{ match.text }}
+                    </a>
+                  {% endfor %}
+                </div>
+              </div>
+            </article>
+          {% endfor %}
+        {% elif query %}
+          <div>No matches found.</div>
+        {% endif %}
+      </section>
+    </main>
+  </body>
+</html>
